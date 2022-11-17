@@ -81,6 +81,9 @@ int main()
         return 1;
     }
 
+    // No longer need server socket
+    closesocket(listenSocket);
+
     char recvbuf[DEFAULT_BUFLEN];
     int sendResult;
     int recvbuflen = DEFAULT_BUFLEN;
@@ -121,6 +124,10 @@ int main()
         WSACleanup();
         return 1;
     }
+
+    // cleanup
+    closesocket(ClientSocket);
+    WSACleanup();
 
     return 0;
 }
