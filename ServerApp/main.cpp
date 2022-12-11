@@ -1,18 +1,18 @@
 #include <iostream>
+#include <stdexcept>
 
 #include "ServerSocket.h"
+#include "Connection.h"
+#include <tchar.h>
+
+#pragma comment(lib, "Ws2_32.lib")
 
 int main()
 {
     try
     {
-        ServerSocket socket;
-
-        socket.MakeConnection();
-        std::string recievedMessage = socket.WaitForRequest();
-        std::cout << "Recieved message: " << recievedMessage << std::endl;
-
-        socket.Send("Server Hello");
+        Connection connect;
+        connect.RSAConnection();
     }
     catch (std::exception& ex)
     {

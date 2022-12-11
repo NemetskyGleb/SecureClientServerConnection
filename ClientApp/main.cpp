@@ -1,19 +1,14 @@
 #include <iostream>
 
 #include "ClientSocket.h"
+#include "Connection.h"
 
 int main(int argc, char** argv)
 {
     try
     {
-        ClientSocket socket;
-
-        socket.MakeConnection();
-
-        socket.Send("Client Hello");
-
-        std::string recievedMessage = socket.WaitForResponse();
-        std::cout << "Recieved message: " << recievedMessage << std::endl;
+        Connection connect;
+        connect.RSAConnection();
     }
     catch (std::exception& ex)
     {

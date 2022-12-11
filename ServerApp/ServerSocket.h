@@ -6,8 +6,6 @@
 #include <string>
 #include <stdexcept>
 
-#pragma comment(lib, "Ws2_32.lib")
-
 /// @brief 
 class ServerSocket
 {

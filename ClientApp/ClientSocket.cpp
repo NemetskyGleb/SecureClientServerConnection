@@ -1,5 +1,4 @@
 #include "ClientSocket.h"
-
 #include <iostream>
 
 void ClientSocket::MakeConnection()

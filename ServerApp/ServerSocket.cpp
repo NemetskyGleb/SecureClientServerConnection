@@ -1,6 +1,5 @@
 #include "ServerSocket.h"
 #include <iostream>
-
 // https://learn.microsoft.com/ru-ru/windows/win32/winsock/winsock-server-application
 
 void ServerSocket::MakeConnection()
