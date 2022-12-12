@@ -3,12 +3,7 @@
 #include "ServerSocket.h"
 #include <iostream>
 #include <cryptopp/rsa.h>
-#include <cryptopp/randpool.h>
-#include <cryptopp/pubkey.h>
 #include <cryptopp/osrng.h>
-#include <cryptopp/rng.h>
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/files.h>
 
 class Connection
 {
@@ -18,7 +13,7 @@ public:
 		socket_.MakeConnection();
 	}
 
-	void RSAConnection() 
+	void RSAConnection()
 	{
 		using namespace CryptoPP;
 		using namespace std;
@@ -29,25 +24,28 @@ public:
 			throw runtime_error("Failed connection!");
 		}
 
-		//RSA::PublicKey pubKey;
+		RSA::PublicKey pubKey;
 
 		AutoSeededRandomPool rng;
 
+		constexpr size_t keySize = 3072;
+
 		InvertibleRSAFunction params;
-		params.GenerateRandomWithKeySize(rng, 3072);
+		params.GenerateRandomWithKeySize(rng, keySize);
 
 		RSA::PrivateKey privateKey(params);
 		RSA::PublicKey publicKey(params);
-
-		RSAES_OAEP_SHA_Encryptor e(publicKey);
 		
-		//char buf[256];
-		//ByteQueue bytes;
-		publicKey.BERDecode(FileSource("privkey.der").Ref());;
-		//bytes.Put(reinterpret_cast<const byte*>(buf), 256);
+		byte bytesBuf[keySize];
+		ArraySink sink(bytesBuf, keySize);
+		// Кодируем публичный ключ с помощью DER
+		publicKey.Save(sink);
+
+		// Отправляем public key, private key сохраняем у себя
+		socket_.Send({ bytesBuf, bytesBuf + keySize });
 	}
 
-	
+
 
 	~Connection() {}
 private:

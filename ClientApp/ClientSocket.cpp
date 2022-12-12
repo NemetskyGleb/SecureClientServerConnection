@@ -61,7 +61,10 @@ std::string ClientSocket::WaitForResponse()
             return std::string{ recvbuf_.data(), recvbuf_.data() + bytesRecieved };
         }
         else if (bytesRecieved == 0)
+        {
             std::cerr << "Connection closed\n";
+            return std::string();
+        }
         else
             std::cerr << "recv failed with error: " << WSAGetLastError() << '\n';
     } while (bytesRecieved > 0);
