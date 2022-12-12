@@ -55,7 +55,10 @@ std::string ServerSocket::WaitForRequest()
 			return std::string{ recvbuf_.data(), recvbuf_.data() + bytesRecieved };
 		}
 		else if (bytesRecieved == 0)
+		{
 			std::cout << "Connection closing...\n";
+			return std::string();
+		}
 		else {
 			printf("recv failed with error: %d\n", WSAGetLastError());
 			throw;
