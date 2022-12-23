@@ -49,7 +49,54 @@ public:
 		std::cout << "iv: ";
 		encoder.Put(iv, iv.size());
 		encoder.MessageEnd();
-		std::cout << "\nSending AES session keys..." << std::endl;
+		std::cout << std::endl;
+
+		// Шифрование сессионного ключа публичным
+		std::cout << "Sending cipher AES session keys to server..." << std::endl;
+
+		std::string cipher_key, cipher_iv;
+
+		// Шифруем AES сессионный ключ key
+		try
+		{
+			RSAES_OAEP_SHA_Encryptor e(publicKey);
+
+			ArraySource as(key, key.size(), true, /* pump all data */
+				new PK_EncryptorFilter(rng, e,
+					new StringSink(cipher_key)));
+		}
+		catch (const Exception &e)
+		{
+			std::cerr << "AES session key Encryption: " << e.what() << std::endl;
+			exit(1);
+		}
+
+		// Выведем в консоль cipher_key для проверки
+		std::cout << "cipher_key: ";
+		encoder.Put((const byte *)&cipher_key[0], cipher_key.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
+
+		// Шифруем AES сессионный ключ iv
+		try
+		{
+			RSAES_OAEP_SHA_Encryptor e(publicKey);
+
+			ArraySource as(iv, key.size(), true, /* pump all data */
+				new PK_EncryptorFilter(rng, e,
+					new StringSink(cipher_iv)));
+		}
+		catch (const Exception &e)
+		{
+			std::cerr << "AES session iv Encryption: " << e.what() << std::endl;
+			exit(1);
+		}
+
+		// Выведем в консоль cipher_iv для проверки
+		std::cout << "cipher_iv: ";
+		encoder.Put((const byte *)&cipher_iv[0], cipher_iv.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
 
 		// Отправка на сервер
 	}
