@@ -7,6 +7,7 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/files.h>
 
+
 class Connection
 {
 public:
@@ -68,11 +69,58 @@ public:
 		encoder.MessageEnd();
 		std::cout << std::endl;
 
+		// Расшифруем сессионный ключ полученный от клиента используя приватный ключ
+		SecByteBlock key(AES::DEFAULT_KEYLENGTH);
+		SecByteBlock iv(AES::BLOCKSIZE);
+
+		try
+		{
+			RSAES_OAEP_SHA_Decryptor d(privateKey);
+
+			StringSource s(sessionCipherKey_key, true,
+				new PK_DecryptorFilter(rng, d,
+					new ArraySink(key, key.size())
+				) // StreamTransformationFilter
+			); // StringSource
+		}
+		catch (const Exception &d)
+		{
+			std::cerr << "AES session key Decryption: " << d.what() << std::endl;
+			exit(1);
+		}
+
+		try
+		{
+			RSAES_OAEP_SHA_Decryptor d(privateKey);
+
+			StringSource s(sessionCipherKey_iv, true,
+				new PK_DecryptorFilter(rng, d,
+					new ArraySink(iv, iv.size())
+				) // StreamTransformationFilter
+			); // StringSource
+		}
+		catch (const Exception &d)
+		{
+			std::cerr << "AES session key Decryption: " << d.what() << std::endl;
+			exit(1);
+		}
+
+		// Выведем в консоль расшифрованный сессионный ключ key, который был получен от клиента
+		std::cout << "Decrypted AES session key from client\nkey: ";
+		encoder.Put(key, key.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
+
+		// Выведем в консоль расшифрованный сессионный ключ iv, который был получен от клиента
+		std::cout << "iv: ";
+		encoder.Put(iv, iv.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
+
 		while (true) {
 			Sleep(30000);
 		}
 	}
-
 
 
 	~Connection() {}

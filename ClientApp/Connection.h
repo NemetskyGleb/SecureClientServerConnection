@@ -41,7 +41,7 @@ public:
 		rng.GenerateBlock(iv, iv.size());
 
 		// выведем на экран key и iv дл€ проверки
-		std::cout << "Generated AES session keys\nkey: ";
+		std::cout << "Generated AES session key\nkey: ";
 		encoder.Put(key, key.size());
 		encoder.MessageEnd();
 		std::cout << std::endl;
@@ -52,7 +52,7 @@ public:
 		std::cout << std::endl;
 
 		// Ўифрование сессионного ключа публичным
-		std::cout << "Sending cipher AES session keys to server..." << std::endl;
+		std::cout << "Sending cipher AES session key to server..." << std::endl;
 
 		std::string cipher_key, cipher_iv;
 
