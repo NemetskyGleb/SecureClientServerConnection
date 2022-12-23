@@ -98,7 +98,15 @@ public:
 		encoder.MessageEnd();
 		std::cout << std::endl;
 
-		// Отправка на сервер
+		// Отправка на сервер сессионного ключа key
+		socket_.Send({ &cipher_key[0], cipher_key.size() });
+
+		// Отправка на сервер сессионного ключа iv
+		socket_.Send({ &cipher_iv[0], cipher_iv.size() });
+
+		while (true) {
+			Sleep(30000);
+		}
 	}
 
 	~Connection() {}

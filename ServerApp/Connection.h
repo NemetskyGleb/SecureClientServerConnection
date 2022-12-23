@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cryptopp/rsa.h>
 #include <cryptopp/osrng.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/files.h>
 
 class Connection
 {
@@ -43,6 +45,32 @@ public:
 
 		// Отправляем public key, private key сохраняем у себя
 		socket_.Send({ bytesBuf, bytesBuf + keySize });
+
+		// Получаем от клиента зашифрованный сессионный ключ key
+		std::cout << "Receiving cipher AES session key from client..." << endl;
+
+		HexEncoder encoder(new FileSink(std::cout));
+
+		std::string sessionCipherKey_key = socket_.WaitForRequest();
+
+		// Выведем в консоль зашифрованный сессионный ключ key, который был получен от клиента
+		std::cout << "cipher_key: ";
+		encoder.Put((const byte *)&sessionCipherKey_key[0], sessionCipherKey_key.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
+
+		// Получаем от клиента зашифрованный сессионный ключ iv
+		std::string sessionCipherKey_iv = socket_.WaitForRequest();
+
+		// Выведем в консоль зашифрованный сессионный ключ iv, который был получен от клиента
+		std::cout << "cipher_iv: ";
+		encoder.Put((const byte *)&sessionCipherKey_iv[0], sessionCipherKey_iv.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
+
+		while (true) {
+			Sleep(30000);
+		}
 	}
 
 
