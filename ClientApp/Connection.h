@@ -1,6 +1,10 @@
 #pragma once
 #include "ClientSocket.h"
 #include <cryptopp/rsa.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/files.h>
+#include <string>
 
 class Connection
 {
@@ -12,6 +16,7 @@ public:
 	void RSAConnection()
 	{
 		using namespace CryptoPP;
+
 		// Начинаем RSA соединение с сервером
 		socket_.Send("connection_start");
 		
@@ -26,8 +31,26 @@ public:
 		publicKey.Load(bytes);
 
 		// Создание сессионого ключа
+		AutoSeededRandomPool rng;
+		HexEncoder encoder(new FileSink(std::cout));
 
-		// Шифрование публичного ключа сессионным
+		SecByteBlock key(AES::DEFAULT_KEYLENGTH);
+		SecByteBlock iv(AES::BLOCKSIZE);
+
+		rng.GenerateBlock(key, key.size());
+		rng.GenerateBlock(iv, iv.size());
+
+		// выведем на экран key и iv для проверки
+		std::cout << "Generated AES session keys\nkey: ";
+		encoder.Put(key, key.size());
+		encoder.MessageEnd();
+		std::cout << std::endl;
+
+		std::cout << "iv: ";
+		encoder.Put(iv, iv.size());
+		encoder.MessageEnd();
+		std::cout << "\nSending AES session keys..." << std::endl;
+
 		// Отправка на сервер
 	}
 
