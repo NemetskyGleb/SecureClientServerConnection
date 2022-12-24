@@ -11,9 +11,17 @@
 class Connection
 {
 public:
-	Connection()
+	Connection() : logger_(new CryptoPP::FileSink(std::cout))
 	{
 		socket_.MakeConnection();
+	}
+
+	void LogKey(const std::string& message, const std::string& key)
+	{
+		std::cout << message;
+		logger_.Put((const byte*)&key[0], key.size());
+		logger_.MessageEnd();
+		std::cout << std::endl;
 	}
 
 	void RSAConnection()
@@ -50,24 +58,14 @@ public:
 		// Получаем от клиента зашифрованный сессионный ключ key
 		std::cout << "Receiving cipher AES session key from client..." << endl;
 
-		HexEncoder encoder(new FileSink(std::cout));
-
-		std::string sessionCipherKey_key = socket_.WaitForRequest();
-
+		std::string sessionCipherKey = socket_.WaitForRequest();
 		// Выведем в консоль зашифрованный сессионный ключ key, который был получен от клиента
-		std::cout << "cipher_key: ";
-		encoder.Put((const byte *)&sessionCipherKey_key[0], sessionCipherKey_key.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		LogKey("cipher_key: ", sessionCipherKey);
 
 		// Получаем от клиента зашифрованный сессионный ключ iv
-		std::string sessionCipherKey_iv = socket_.WaitForRequest();
-
-		// Выведем в консоль зашифрованный сессионный ключ iv, который был получен от клиента
-		std::cout << "cipher_iv: ";
-		encoder.Put((const byte *)&sessionCipherKey_iv[0], sessionCipherKey_iv.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		std::string sessionCipherIv = socket_.WaitForRequest();
+		// Выведем в консоль зашифрованный инициализируюший вектор iv, который был получен от клиента
+		LogKey("cipher_iv: ", sessionCipherIv);
 
 		// Расшифруем сессионный ключ полученный от клиента используя приватный ключ
 		SecByteBlock key(AES::DEFAULT_KEYLENGTH);
@@ -76,24 +74,13 @@ public:
 		try
 		{
 			RSAES_OAEP_SHA_Decryptor d(privateKey);
-
-			StringSource s(sessionCipherKey_key, true,
+			StringSource sKey(sessionCipherKey, true,
 				new PK_DecryptorFilter(rng, d,
 					new ArraySink(key, key.size())
 				) // StreamTransformationFilter
 			); // StringSource
-		}
-		catch (const Exception &d)
-		{
-			std::cerr << "AES session key Decryption: " << d.what() << std::endl;
-			exit(1);
-		}
 
-		try
-		{
-			RSAES_OAEP_SHA_Decryptor d(privateKey);
-
-			StringSource s(sessionCipherKey_iv, true,
+			StringSource sIv(sessionCipherIv, true,
 				new PK_DecryptorFilter(rng, d,
 					new ArraySink(iv, iv.size())
 				) // StreamTransformationFilter
@@ -106,25 +93,19 @@ public:
 		}
 
 		// Выведем в консоль расшифрованный сессионный ключ key, который был получен от клиента
-		std::cout << "Decrypted AES session key from client\nkey: ";
-		encoder.Put(key, key.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		std::cout << "Decrypted AES session key from client\n";
+		LogKey("key: ", { reinterpret_cast<const char*>(key.data()), key.size() });
 
 		// Выведем в консоль расшифрованный сессионный ключ iv, который был получен от клиента
-		std::cout << "iv: ";
-		encoder.Put(iv, iv.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		LogKey("iv: ", { reinterpret_cast<const char*>(iv.data()), iv.size() });
 
 		while (true) {
 			Sleep(30000);
 		}
 	}
 
-
 	~Connection() {}
 private:
 	ServerSocket socket_;
-
+	CryptoPP::HexEncoder logger_;
 };
