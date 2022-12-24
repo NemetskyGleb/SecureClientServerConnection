@@ -68,7 +68,7 @@ public:
 		LogKey("cipher_iv: ", sessionCipherIv);
 
 		// Расшифруем сессионный ключ полученный от клиента используя приватный ключ
-		SecByteBlock key(AES::DEFAULT_KEYLENGTH);
+		SecByteBlock key(AES::MAX_KEYLENGTH);
 		SecByteBlock iv(AES::BLOCKSIZE);
 
 		try
@@ -96,7 +96,7 @@ public:
 		std::cout << "Decrypted AES session key from client\n";
 		LogKey("key: ", { reinterpret_cast<const char*>(key.data()), key.size() });
 
-		// Выведем в консоль расшифрованный сессионный ключ iv, который был получен от клиента
+		// Выведем в консоль расшифрованный инициализируюший вектор iv, который был получен от клиента
 		LogKey("iv: ", { reinterpret_cast<const char*>(iv.data()), iv.size() });
 
 		while (true) {

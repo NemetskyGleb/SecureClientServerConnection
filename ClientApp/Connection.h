@@ -9,10 +9,19 @@
 class Connection
 {
 public:
-	Connection() 
+	Connection() : logger_(new CryptoPP::FileSink(std::cout))
 	{
 		socket_.MakeConnection();
 	}
+
+	void LogKey(const std::string& message, const std::string& key)
+	{
+		std::cout << message;
+		logger_.Put((const byte*)&key[0], key.size());
+		logger_.MessageEnd();
+		std::cout << std::endl;
+	}
+
 	void RSAConnection()
 	{
 		using namespace CryptoPP;
@@ -32,24 +41,18 @@ public:
 
 		// Создание сессионого ключа
 		AutoSeededRandomPool rng;
-		HexEncoder encoder(new FileSink(std::cout));
 
-		SecByteBlock key(AES::DEFAULT_KEYLENGTH);
+		SecByteBlock key(AES::MAX_KEYLENGTH);
 		SecByteBlock iv(AES::BLOCKSIZE);
 
 		rng.GenerateBlock(key, key.size());
 		rng.GenerateBlock(iv, iv.size());
 
 		// выведем на экран key и iv для проверки
-		std::cout << "Generated AES session key\nkey: ";
-		encoder.Put(key, key.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		std::cout << "Generated AES session key\n";
+		LogKey("key: ", { reinterpret_cast<const char*>(key.data()), key.size() });
 
-		std::cout << "iv: ";
-		encoder.Put(iv, iv.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		LogKey("iv: ", { reinterpret_cast<const char*>(iv.data()), iv.size() });
 
 		// Шифрование сессионного ключа публичным
 		std::cout << "Sending cipher AES session key to server..." << std::endl;
@@ -61,28 +64,13 @@ public:
 		{
 			RSAES_OAEP_SHA_Encryptor e(publicKey);
 
-			ArraySource as(key, key.size(), true, /* pump all data */
+			ArraySource asKey(key, key.size(), true, /* pump all data */
 				new PK_EncryptorFilter(rng, e,
 					new StringSink(cipher_key)));
-		}
-		catch (const Exception &e)
-		{
-			std::cerr << "AES session key Encryption: " << e.what() << std::endl;
-			exit(1);
-		}
+			
+			// Шифруем AES сессионный ключ iv
 
-		// Выведем в консоль cipher_key для проверки
-		std::cout << "cipher_key: ";
-		encoder.Put((const byte *)&cipher_key[0], cipher_key.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
-
-		// Шифруем AES сессионный ключ iv
-		try
-		{
-			RSAES_OAEP_SHA_Encryptor e(publicKey);
-
-			ArraySource as(iv, key.size(), true, /* pump all data */
+			ArraySource asIv(iv, key.size(), true, /* pump all data */
 				new PK_EncryptorFilter(rng, e,
 					new StringSink(cipher_iv)));
 		}
@@ -92,11 +80,11 @@ public:
 			exit(1);
 		}
 
+		// Выведем в консоль cipher_key для проверки
+		LogKey("cipher_key: ", cipher_key);
+
 		// Выведем в консоль cipher_iv для проверки
-		std::cout << "cipher_iv: ";
-		encoder.Put((const byte *)&cipher_iv[0], cipher_iv.size());
-		encoder.MessageEnd();
-		std::cout << std::endl;
+		LogKey("cipher_iv: ", cipher_iv);
 
 		// Отправка на сервер сессионного ключа key
 		socket_.Send({ &cipher_key[0], cipher_key.size() });
@@ -112,5 +100,6 @@ public:
 	~Connection() {}
 
 private:
+	CryptoPP::HexEncoder logger_;
 	ClientSocket socket_;
 };
