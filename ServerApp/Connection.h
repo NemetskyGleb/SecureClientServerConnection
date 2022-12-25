@@ -35,8 +35,6 @@ public:
 			throw runtime_error("Failed connection!");
 		}
 
-		RSA::PublicKey pubKey;
-
 		AutoSeededRandomPool rng;
 
 		constexpr size_t keySize = 3072;
