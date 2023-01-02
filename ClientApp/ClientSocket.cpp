@@ -40,19 +40,20 @@ void ClientSocket::MakeConnection()
     std::cout << "Connection with server " << serverName_ << " succeed." << std::endl;    
 }
 
-void ClientSocket::Send(const std::string& message)
+void ClientSocket::Send(const std::string& message) const
 {
     int32_t bytesSent = send(connectSocket_, message.c_str(), message.size(), 0);
     if (bytesSent == SOCKET_ERROR) {
         printf("send failed with error: %d\n", WSAGetLastError());
         throw std::runtime_error("send failed");
     }
+    Sleep(100);
     std::cout << "Bytes sent: " << bytesSent << "\n";
 }
 
 std::string ClientSocket::WaitForResponse()
 {
-    int32_t bytesRecieved = 0;
+    size_t bytesRecieved = 0;
     do {
         bytesRecieved = recv(connectSocket_, &recvbuf_[0], recvbuf_.capacity(), 0);
         if (bytesRecieved > 0)

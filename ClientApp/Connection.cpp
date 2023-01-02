@@ -1,9 +1,12 @@
 #include "Connection.h"
 #include <cryptopp/files.h>
 #include <cryptopp/osrng.h>
+#include <cryptopp/sha.h>
+#include <cryptopp/modes.h>
 
+using namespace CryptoPP;
 
-Connection::Connection() : logger_(new CryptoPP::FileSink(std::cout))
+Connection::Connection() : logger_(new FileSink(std::cout))
 {
 	socket_.MakeConnection();
 }
@@ -18,20 +21,17 @@ void Connection::LogKey(const std::string& message, const std::string& key)
 
 void Connection::RSAConnection()
 {
-	using namespace CryptoPP;
-
 	// Начинаем RSA соединение с сервером
 	socket_.Send("connection_start");
 
 	// Получаем от сервера публичный ключ в DER кодировке
 	std::string publicKeyEncoded = socket_.WaitForResponse();
 
-	ByteQueue bytes;
-	bytes.Put(reinterpret_cast<byte*>(&publicKeyEncoded[0]), publicKeyEncoded.size());
-
+	StringSource ss(publicKeyEncoded, true);
+	
 	// Загружаем в клиент публичный ключ BER декодированием
 	RSA::PublicKey publicKey;
-	publicKey.Load(bytes);
+	publicKey.Load(ss);
 
 	// Создание сессионого ключа
 	AutoSeededRandomPool rng;
@@ -111,9 +111,91 @@ void Connection::RSAConnection()
 
 void Connection::SendSecuredMessage(const std::string& message)
 {
+	// Вычисление хеша от отправляемого сообщения
+	std::string digest;
+	StringSource sHash(message, true, new HashFilter(hash_, new StringSink(digest)));
+	LogKey("Digest: ", digest);
+	
+
+	// Шифрование хеша и сообщения на сессионом ключе
+	std::string cipherDigest;
+	std::string cipherMessage;
+	try
+	{
+		CBC_Mode<AES>::Encryption e;
+
+		e.SetKeyWithIV(sessionKey_, sessionKey_.size(), iv_);
+		StringSource sMessage(message, true,
+			new StreamTransformationFilter(e,
+				new StringSink(cipherMessage)
+			) // StreamTransformationFilter
+		); // StringSource
+
+		e.SetKeyWithIV(sessionHashKey_, sessionHashKey_.size(), hashIv_);
+		StringSource sHash(digest, true,
+			new StreamTransformationFilter(e,
+				new StringSink(cipherDigest)
+			) // StreamTransformationFilter
+		); // StringSource
+	}
+	catch (const Exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+		exit(1);
+	}
+
+	socket_.Send({ &cipherMessage[0], cipherMessage.size() });
+	LogKey("Cipher message: ", cipherMessage);
+	socket_.Send({ &cipherDigest[0], cipherDigest.size() });
+	LogKey("Cipher digest: ", cipherDigest);
 }
 
 std::string Connection::RecieveMessageFromServer()
 {
-	return std::string();
+	auto recievedCipherMessage = socket_.WaitForResponse();
+	LogKey("Cipher message: ", recievedCipherMessage);
+
+	auto recievedCipherDigest = socket_.WaitForResponse();
+	LogKey("Cipher digest: ", recievedCipherDigest);
+
+	std::string recievedMessage, recievedDigest;
+	try
+	{
+		CBC_Mode<AES>::Decryption d;
+
+		d.SetKeyWithIV(sessionHashKey_, sessionHashKey_.size(), hashIv_);
+
+		StringSource sHash(recievedCipherDigest, true,
+			new StreamTransformationFilter(d,
+				new StringSink(recievedDigest)
+			) // StreamTransformationFilter
+		); // StringSource
+
+		d.SetKeyWithIV(sessionKey_, sessionKey_.size(), iv_);
+
+		StringSource sMessage(recievedCipherMessage, true,
+			new StreamTransformationFilter(d,
+				new StringSink(recievedMessage)
+			) // StreamTransformationFilter
+		); // StringSource
+	}
+	catch (const Exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+		exit(1);
+	}
+
+	LogKey("Recieved hash: ", recievedDigest);
+
+	std::string actualDigest;
+	StringSource sHash(recievedMessage, true, new HashFilter(hash_, new StringSink(actualDigest)));
+
+	LogKey("Actual hash: ", actualDigest);
+
+	if (actualDigest != recievedDigest)
+	{
+		throw std::runtime_error("Hashes aren't equal. Authentification not passed.");
+	}
+
+	return recievedMessage;
 }

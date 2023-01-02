@@ -3,7 +3,6 @@
 
 #include "ServerSocket.h"
 #include "Connection.h"
-#include <tchar.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -13,6 +12,12 @@ int main()
     {
         Connection connect;
         connect.RSAConnection();
+        std::cout << "Everything is set up and ready to use!" << std::endl;
+        std::cout << "Recieved message from client: " << connect.RecieveMessageFromClient() << std::endl;
+
+        const std::string message = "Server Hello!";
+        std::cout << "Sending \"" << message << "\" to client." << std::endl;
+        connect.SendSecuredMessage(message);
     }
     catch (std::exception& ex)
     {

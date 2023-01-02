@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cryptopp/rsa.h>
 #include <cryptopp/hex.h>
+#include <cryptopp/sha.h>
 
 /// @brief  ласс дл€ создани€ защищенного соеденени€ на стороне сервера
 class Connection
@@ -27,6 +28,8 @@ public:
 	/// @return ѕолученное сообщение
 	std::string RecieveMessageFromClient();
 
+	const ServerSocket& GetSocket() { return socket_;  }
+
 	~Connection() {}
 private:
 	CryptoPP::RSA::PrivateKey privateKey_;
@@ -38,5 +41,6 @@ private:
 	CryptoPP::SecByteBlock hashIv_;
 
 	ServerSocket socket_;
+	CryptoPP::SHA256 hash_;
 	CryptoPP::HexEncoder logger_;
 };

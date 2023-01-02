@@ -2,6 +2,7 @@
 #include "ClientSocket.h"
 #include <cryptopp/rsa.h>
 #include <cryptopp/hex.h>
+#include <cryptopp/sha.h>
 #include <string>
 
 /// @brief Класс для создания защищенного соеденения на стороне сервера
@@ -36,5 +37,6 @@ private:
 	CryptoPP::SecByteBlock hashIv_;
 
 	CryptoPP::HexEncoder logger_;
+	CryptoPP::SHA256 hash_;
 	ClientSocket socket_;
 };

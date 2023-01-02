@@ -36,7 +36,7 @@ public:
 
 	/// @brief Отправить по сокету сообщение
 	/// @param message Отправляемое сообщение
-	void Send(const std::string& message);
+	void Send(const std::string& message) const;
 
 	/// @brief Ждать сообщение с сервера
 	/// @return Полученное сообщение 

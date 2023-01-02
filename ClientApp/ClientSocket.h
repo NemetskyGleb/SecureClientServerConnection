@@ -21,7 +21,7 @@ public:
 	/// @param servername IP адрес сервера. По умолчанию localhost
 	ClientSocket(const std::string& port = "27015",
 		const std::string& servername = "localhost",
-		int32_t buflen = 512)
+		size_t buflen = 512)
 		: port_{ port }, serverName_{ servername }
 	{
 		recvbuf_.reserve(buflen);
@@ -41,7 +41,7 @@ public:
 	
 	/// @brief Отправить по сокету сообщение
 	/// @param message Отправляемое сообщение
-	void Send(const std::string& message);
+	void Send(const std::string& message) const;
 
 	std::string WaitForResponse();
 

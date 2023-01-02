@@ -33,7 +33,7 @@ void ServerSocket::MakeConnection()
 	closesocket(listenSocket_);
 }
 
-void ServerSocket::Send(const std::string& message)
+void ServerSocket::Send(const std::string& message) const
 {
 	int32_t bytesSent = send(clientSocket_, message.c_str(), message.size(), 0);
 	if (bytesSent == SOCKET_ERROR) {
@@ -41,6 +41,7 @@ void ServerSocket::Send(const std::string& message)
 		printf("send failed with error: %d\n", WSAGetLastError());
 		throw;
 	}
+	Sleep(100);
 	std::cout << "Bytes sent: " << bytesSent << "\n";
 }
 
