@@ -34,6 +34,9 @@ private:
 	CryptoPP::SecByteBlock sessionKey_;
 	CryptoPP::SecByteBlock iv_;
 
+	CryptoPP::SecByteBlock sessionHashKey_;
+	CryptoPP::SecByteBlock hashIv_;
+
 	ServerSocket socket_;
 	CryptoPP::HexEncoder logger_;
 };

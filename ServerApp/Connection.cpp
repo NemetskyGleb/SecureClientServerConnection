@@ -44,34 +44,52 @@ void Connection::RSAConnection()
 	// Отправляем public key, private key сохраняем у себя
 	socket_.Send({ bytesBuf, bytesBuf + keySize });
 
-	// Получаем от клиента зашифрованный сессионный ключ key
+	// Получаем от клиента зашифрованный сессионный ключ
 	std::cout << "Receiving cipher AES session key from client..." << endl;
-
 	std::string sessionCipherKey = socket_.WaitForRequest();
-	// Выведем в консоль зашифрованный сессионный ключ key, который был получен от клиента
 	LogKey("cipher_key: ", sessionCipherKey);
-
-	// Получаем от клиента зашифрованный сессионный ключ iv
 	std::string sessionCipherIv = socket_.WaitForRequest();
-	// Выведем в консоль зашифрованный инициализируюший вектор iv, который был получен от клиента
 	LogKey("cipher_iv: ", sessionCipherIv);
 
-	// Расшифруем сессионный ключ полученный от клиента используя приватный ключ
+	// Получаем от клиента зашифрованный сессионный ключ для хеша
+	std::cout << "Receiving cipher AES hash session key from client..." << endl;
+	std::string sessionCipherHashKey = socket_.WaitForRequest();
+	LogKey("cipher_hash_key: ", sessionCipherHashKey);
+	std::string sessionCipherHashIv = socket_.WaitForRequest();
+	LogKey("cipher_hash_iv: ", sessionCipherHashIv);
+
+	// Расшифруем сессионные ключи полученные от клиента, используя приватный ключ
 	sessionKey_ = SecByteBlock(AES::MAX_KEYLENGTH);
 	iv_ = SecByteBlock(AES::BLOCKSIZE);
+
+	sessionHashKey_ = SecByteBlock(AES::MAX_KEYLENGTH);
+	hashIv_ = SecByteBlock(AES::BLOCKSIZE);
 
 	try
 	{
 		RSAES_OAEP_SHA_Decryptor d(privateKey_);
+
 		StringSource sKey(sessionCipherKey, true,
 			new PK_DecryptorFilter(rng, d,
 				new ArraySink(sessionKey_, sessionKey_.size())
 			) // StreamTransformationFilter
 		); // StringSource
 
+		StringSource sHashKey(sessionCipherHashKey, true,
+			new PK_DecryptorFilter(rng, d,
+				new ArraySink(sessionHashKey_, sessionHashKey_.size())
+			) // StreamTransformationFilter
+		); // StringSource
+
 		StringSource sIv(sessionCipherIv, true,
 			new PK_DecryptorFilter(rng, d,
 				new ArraySink(iv_, iv_.size())
+			) // StreamTransformationFilter
+		); // StringSource
+
+		StringSource sHashIv(sessionCipherHashIv, true,
+			new PK_DecryptorFilter(rng, d,
+				new ArraySink(hashIv_, hashIv_.size())
 			) // StreamTransformationFilter
 		); // StringSource
 	}
@@ -81,12 +99,13 @@ void Connection::RSAConnection()
 		exit(1);
 	}
 
-	// Выведем в консоль расшифрованный сессионный ключ key, который был получен от клиента
 	std::cout << "Decrypted AES session key from client\n";
 	LogKey("key: ", { reinterpret_cast<const char*>(sessionKey_.data()), sessionKey_.size() });
-
-	// Выведем в консоль расшифрованный инициализируюший вектор iv, который был получен от клиента
 	LogKey("iv: ", { reinterpret_cast<const char*>(iv_.data()), iv_.size() });
+
+	std::cout << "Decrypted AES hash session key from client\n";
+	LogKey("hash_key: ", { reinterpret_cast<const char*>(sessionHashKey_.data()), sessionKey_.size() });
+	LogKey("hash_iv: ", { reinterpret_cast<const char*>(hashIv_.data()), hashIv_.size() });
 }
 
 void Connection::SendSecuredMessage(const std::string& message)
