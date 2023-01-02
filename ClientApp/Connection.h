@@ -69,7 +69,6 @@ public:
 					new StringSink(cipher_key)));
 			
 			// Ўифруем AES сессионный ключ iv
-
 			ArraySource asIv(iv, key.size(), true, /* pump all data */
 				new PK_EncryptorFilter(rng, e,
 					new StringSink(cipher_iv)));

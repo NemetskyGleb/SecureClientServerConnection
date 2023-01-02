@@ -3,107 +3,37 @@
 #include "ServerSocket.h"
 #include <iostream>
 #include <cryptopp/rsa.h>
-#include <cryptopp/osrng.h>
 #include <cryptopp/hex.h>
-#include <cryptopp/files.h>
 
-
+/// @brief Класс для создания защищенного соеденения на стороне сервера
 class Connection
 {
 public:
-	Connection() : logger_(new CryptoPP::FileSink(std::cout))
-	{
-		socket_.MakeConnection();
-	}
+	Connection();
 
-	void LogKey(const std::string& message, const std::string& key)
-	{
-		std::cout << message;
-		logger_.Put((const byte*)&key[0], key.size());
-		logger_.MessageEnd();
-		std::cout << std::endl;
-	}
+	/// @brief Вывести в консоль hex представление ключа
+	/// @param message Сообщение
+	/// @param key Ключ
+	void LogKey(const std::string& message, const std::string& key);
 
-	void RSAConnection()
-	{
-		using namespace CryptoPP;
-		using namespace std;
+	/// @brief Создать RSA соединение, в котором будет выработан сессионный ключ для сообщения и для хеша
+	void RSAConnection();
 
-		// Accept client connection
-		string recievedMessage = socket_.WaitForRequest();
-		if (recievedMessage != "connection_start") {
-			throw runtime_error("Failed connection!");
-		}
+	/// @brief Отправить зашифрованное сообщение клиенту
+	/// @param message Сообщение
+	void SendSecuredMessage(const std::string& message);
 
-		AutoSeededRandomPool rng;
-
-		constexpr size_t keySize = 3072;
-
-		InvertibleRSAFunction params;
-		params.GenerateRandomWithKeySize(rng, keySize);
-
-		RSA::PrivateKey privateKey(params);
-		RSA::PublicKey publicKey(params);
-		
-		byte bytesBuf[keySize];
-		ArraySink sink(bytesBuf, keySize);
-		// Кодируем публичный ключ с помощью DER
-		publicKey.Save(sink);
-
-		// Отправляем public key, private key сохраняем у себя
-		socket_.Send({ bytesBuf, bytesBuf + keySize });
-
-		// Получаем от клиента зашифрованный сессионный ключ key
-		std::cout << "Receiving cipher AES session key from client..." << endl;
-
-		std::string sessionCipherKey = socket_.WaitForRequest();
-		// Выведем в консоль зашифрованный сессионный ключ key, который был получен от клиента
-		LogKey("cipher_key: ", sessionCipherKey);
-
-		// Получаем от клиента зашифрованный сессионный ключ iv
-		std::string sessionCipherIv = socket_.WaitForRequest();
-		// Выведем в консоль зашифрованный инициализируюший вектор iv, который был получен от клиента
-		LogKey("cipher_iv: ", sessionCipherIv);
-
-		// Расшифруем сессионный ключ полученный от клиента используя приватный ключ
-		SecByteBlock key(AES::MAX_KEYLENGTH);
-		SecByteBlock iv(AES::BLOCKSIZE);
-
-		try
-		{
-			RSAES_OAEP_SHA_Decryptor d(privateKey);
-			StringSource sKey(sessionCipherKey, true,
-				new PK_DecryptorFilter(rng, d,
-					new ArraySink(key, key.size())
-				) // StreamTransformationFilter
-			); // StringSource
-
-			StringSource sIv(sessionCipherIv, true,
-				new PK_DecryptorFilter(rng, d,
-					new ArraySink(iv, iv.size())
-				) // StreamTransformationFilter
-			); // StringSource
-		}
-		catch (const Exception &d)
-		{
-			std::cerr << "AES session key Decryption: " << d.what() << std::endl;
-			exit(1);
-		}
-
-		// Выведем в консоль расшифрованный сессионный ключ key, который был получен от клиента
-		std::cout << "Decrypted AES session key from client\n";
-		LogKey("key: ", { reinterpret_cast<const char*>(key.data()), key.size() });
-
-		// Выведем в консоль расшифрованный инициализируюший вектор iv, который был получен от клиента
-		LogKey("iv: ", { reinterpret_cast<const char*>(iv.data()), iv.size() });
-
-		while (true) {
-			Sleep(30000);
-		}
-	}
+	/// @brief Получить сообщение от клиента
+	/// @return Полученное сообщение
+	std::string RecieveMessageFromClient();
 
 	~Connection() {}
 private:
+	CryptoPP::RSA::PrivateKey privateKey_;
+	
+	CryptoPP::SecByteBlock sessionKey_;
+	CryptoPP::SecByteBlock iv_;
+
 	ServerSocket socket_;
 	CryptoPP::HexEncoder logger_;
 };
