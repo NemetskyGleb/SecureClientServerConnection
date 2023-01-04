@@ -4,6 +4,7 @@
 #include <Windows.h>
 
 #include <string>
+#include <list>
 #include <stdexcept>
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
@@ -61,12 +62,15 @@ private:
 	// версия WinSock
 	WSADATA wsaData;
 
-	/// port порт для формирования TCP соединения. 
+	// порт для формирования TCP соединения. 
 	std::string port_;
 	// IP адрес сервера
 	std::string serverName_;
 	// Буфер для получения сообщения
 	std::string recvbuf_;
+
+	// Сообщения из буфера, отделенные разделителем
+	std::list<std::string> pendingMessages;
 
 	inline int32_t checkRetVal(int32_t statusCode, const char* errorMessage) {
 		if (statusCode == INVALID_SOCKET)

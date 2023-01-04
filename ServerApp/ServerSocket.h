@@ -3,6 +3,8 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 
+#include <list>
+#include <vector>
 #include <string>
 #include <stdexcept>
 
@@ -64,6 +66,9 @@ private:
 
 	// Буфер для получения сообщения
 	std::string recvbuf_;
+
+	// Сообщения из буфера, отделенные разделителем
+	std::list<std::string> pendingMessages;
 
 	// Проверка возвращаемого кода, приводящего к завершению программы
 	inline int32_t checkRetVal(int32_t statusCode, const char* errorMessage) {

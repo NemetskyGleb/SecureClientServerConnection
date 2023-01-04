@@ -1,6 +1,9 @@
 #include "ClientSocket.h"
 #include <iostream>
 
+// Разделитель для сообщений из буфера
+const std::string delimiter = "/sep/";
+
 void ClientSocket::MakeConnection()
 {
 	checkRetVal(getaddrinfo(serverName_.c_str()
@@ -42,33 +45,51 @@ void ClientSocket::MakeConnection()
 
 void ClientSocket::Send(const std::string& message) const
 {
-    int32_t bytesSent = send(connectSocket_, message.c_str(), message.size(), 0);
+    std::string sendingMessage = message + delimiter;
+    int32_t bytesSent = send(connectSocket_, sendingMessage.c_str(), sendingMessage.size(), 0);
     if (bytesSent == SOCKET_ERROR) {
         printf("send failed with error: %d\n", WSAGetLastError());
         throw std::runtime_error("send failed");
     }
-    Sleep(100);
     std::cout << "Bytes sent: " << bytesSent << "\n";
 }
 
 std::string ClientSocket::WaitForResponse()
 {
-    size_t bytesRecieved = 0;
-    do {
-        bytesRecieved = recv(connectSocket_, &recvbuf_[0], recvbuf_.capacity(), 0);
-        if (bytesRecieved > 0)
-        {
-            std::cout << "Bytes recieved: " << bytesRecieved << '\n';
-            return std::string{ recvbuf_.data(), recvbuf_.data() + bytesRecieved };
-        }
-        else if (bytesRecieved == 0)
-        {
-            std::cerr << "Connection closed\n";
-            return std::string();
-        }
-        else
-            std::cerr << "recv failed with error: " << WSAGetLastError() << '\n';
-    } while (bytesRecieved > 0);
+    if (!pendingMessages.empty())
+    {
+        auto message = pendingMessages.front();
+        pendingMessages.pop_front();
+        return message;
+    }
+
+	size_t bytesRecieved = 0;
+	bytesRecieved = recv(connectSocket_, &recvbuf_[0], recvbuf_.capacity(), 0);
+	if (bytesRecieved > 0)
+	{
+		std::cout << "Bytes recieved " << bytesRecieved << std::endl;
+
+		auto dataRecieved = std::string{ recvbuf_.data(), recvbuf_.data() + bytesRecieved };
+
+		size_t pos = 0;
+		std::string message;
+		while ((pos = dataRecieved.find(delimiter)) != std::string::npos) {
+			message = dataRecieved.substr(0, pos);
+			dataRecieved.erase(0, pos + delimiter.length());
+			pendingMessages.push_back(std::move(message));
+		}
+		auto firstMessage = pendingMessages.front();
+		pendingMessages.pop_front();
+
+		return firstMessage;
+	}
+	else if (bytesRecieved == 0)
+	{
+		std::cerr << "Connection closed\n";
+		return std::string();
+	}
+	else
+		std::cerr << "recv failed with error: " << WSAGetLastError() << '\n';
 }
 
 ClientSocket::~ClientSocket()

@@ -35,7 +35,6 @@ void Connection::RSAConnection()
 	privateKey_ = { params };
 	RSA::PublicKey publicKey(params);
 
-	//byte bytesBuf[keySize];
 	std::string publicKeyStr;
 	StringSink s(publicKeyStr);
 	// Кодируем публичный ключ с помощью DER
@@ -144,7 +143,6 @@ void Connection::SendSecuredMessage(const std::string& message)
 
 	socket_.Send({ &cipherMessage[0], cipherMessage.size() });
 	LogKey("Cipher message: ", cipherMessage);
-	Sleep(300);
 	socket_.Send( { &cipherDigest[0], cipherDigest.size() } );
 	LogKey("Cipher digest: ", cipherDigest);
 }
