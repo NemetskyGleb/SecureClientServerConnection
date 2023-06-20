@@ -76,6 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>../ServerAppLibrary;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,13 +128,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="ServerSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Connection.h" />
-    <ClInclude Include="ServerSocket.h" />
+    <ProjectReference Include="..\ServerAppLibrary\ServerAppLibrary.vcxproj">
+      <Project>{fdec92ed-1a11-40db-a6a7-37ba25058c2f}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

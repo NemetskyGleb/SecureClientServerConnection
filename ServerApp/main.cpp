@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 #include "ServerSocket.h"
-#include "Connection.h"
+#include "ServerConnection.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -10,7 +10,7 @@ int main()
 {
     try
     {
-        Connection connect;
+        ServerConnection connect;
         connect.RSAConnection();
         std::cout << "Everything is set up and ready to use!" << std::endl;
         std::cout << "Recieved message from client: " << connect.RecieveMessageFromClient() << std::endl;

@@ -1,16 +1,15 @@
 #pragma once
-
-#include "ServerSocket.h"
-#include <iostream>
+#include "ClientSocket.h"
 #include <cryptopp/rsa.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
+#include <string>
 
 /// @brief Класс для создания защищенного соеденения на стороне сервера
-class Connection
+class ClientConnection
 {
 public:
-	Connection();
+	ClientConnection();
 
 	/// @brief Вывести в консоль hex представление ключа
 	/// @param message Сообщение
@@ -24,23 +23,20 @@ public:
 	/// @param message Сообщение
 	void SendSecuredMessage(const std::string& message);
 
-	/// @brief Получить сообщение от клиента
+	/// @brief Получить сообщение от сервера
 	/// @return Полученное сообщение
-	std::string RecieveMessageFromClient();
+	std::string RecieveMessageFromServer();
 
-	const ServerSocket& GetSocket() { return socket_;  }
+	~ClientConnection() {}
 
-	~Connection() {}
 private:
-	CryptoPP::RSA::PrivateKey privateKey_;
-	
 	CryptoPP::SecByteBlock sessionKey_;
 	CryptoPP::SecByteBlock iv_;
 
 	CryptoPP::SecByteBlock sessionHashKey_;
 	CryptoPP::SecByteBlock hashIv_;
 
-	ServerSocket socket_;
-	CryptoPP::SHA256 hash_;
 	CryptoPP::HexEncoder logger_;
+	CryptoPP::SHA256 hash_;
+	ClientSocket socket_;
 };

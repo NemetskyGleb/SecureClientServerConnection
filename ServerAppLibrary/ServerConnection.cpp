@@ -1,16 +1,16 @@
-#include "Connection.h"
+#include "ServerConnection.h"
 #include <cryptopp/files.h>
 #include <cryptopp/osrng.h>
 #include <cryptopp/modes.h>
 
 using namespace CryptoPP;
 
-Connection::Connection() : logger_(new CryptoPP::FileSink(std::cout))
+ServerConnection::ServerConnection() : logger_(new CryptoPP::FileSink(std::cout))
 {
 	socket_.MakeConnection();
 }
 
-void Connection::LogKey(const std::string& message, const std::string& key)
+void ServerConnection::LogKey(const std::string& message, const std::string& key)
 {
 	std::cout << message;
 	logger_.Put((const byte*)&key[0], key.size());
@@ -18,7 +18,7 @@ void Connection::LogKey(const std::string& message, const std::string& key)
 	std::cout << std::endl;
 }
 
-void Connection::RSAConnection()
+void ServerConnection::RSAConnection()
 {
 	// Accept client connection
 	std::string recievedMessage = socket_.WaitForRequest();
@@ -107,7 +107,7 @@ void Connection::RSAConnection()
 	LogKey("hash_iv: ", { reinterpret_cast<const char*>(hashIv_.data()), hashIv_.size() });
 }
 
-void Connection::SendSecuredMessage(const std::string& message)
+void ServerConnection::SendSecuredMessage(const std::string& message)
 {
 	// Вычисление хеша от отправляемого сообщения
 	std::string digest;
@@ -147,7 +147,7 @@ void Connection::SendSecuredMessage(const std::string& message)
 	LogKey("Cipher digest: ", cipherDigest);
 }
 
-std::string Connection::RecieveMessageFromClient()
+std::string ServerConnection::RecieveMessageFromClient()
 {
 	auto recievedCipherMessage = socket_.WaitForRequest();
 	auto recievedCipherDigest = socket_.WaitForRequest();

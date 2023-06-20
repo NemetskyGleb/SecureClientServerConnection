@@ -1,13 +1,13 @@
 #include <iostream>
 
 #include "ClientSocket.h"
-#include "Connection.h"
+#include "ClientConnection.h"
 
 int main(int argc, char** argv)
 {
     try
     {        
-        Connection connect;
+        ClientConnection connect;
         connect.RSAConnection();
          
         std::cout << "Everything is set up and ready to use!" << std::endl;
