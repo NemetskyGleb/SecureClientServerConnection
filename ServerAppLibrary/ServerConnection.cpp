@@ -3,7 +3,12 @@
 #include <cryptopp/osrng.h>
 #include <cryptopp/modes.h>
 
+#include <mutex>
+#include <thread>
+
 using namespace CryptoPP;
+
+std::mutex serverMtx;
 
 ServerConnection::ServerConnection() : logger_(new CryptoPP::FileSink(std::cout))
 {
@@ -12,6 +17,8 @@ ServerConnection::ServerConnection() : logger_(new CryptoPP::FileSink(std::cout)
 
 void ServerConnection::LogKey(const std::string& message, const std::string& key)
 {
+	std::lock_guard<std::mutex> lock(serverMtx);
+
 	std::cout << message;
 	logger_.Put((const byte*)&key[0], key.size());
 	logger_.MessageEnd();

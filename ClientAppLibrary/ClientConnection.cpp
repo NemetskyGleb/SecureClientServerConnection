@@ -4,7 +4,12 @@
 #include <cryptopp/sha.h>
 #include <cryptopp/modes.h>
 
+#include <mutex>
+#include <thread>
+
 using namespace CryptoPP;
+
+std::mutex clientMtx;
 
 ClientConnection::ClientConnection() : logger_(new FileSink(std::cout))
 {
@@ -13,6 +18,8 @@ ClientConnection::ClientConnection() : logger_(new FileSink(std::cout))
 
 void ClientConnection::LogKey(const std::string& message, const std::string& key)
 {
+	std::lock_guard<std::mutex> lock(clientMtx);
+
 	std::cout << message;
 	logger_.Put((const byte*)&key[0], key.size());
 	logger_.MessageEnd();
