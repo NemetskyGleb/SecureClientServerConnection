@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "ClientConnection.h"
-#include "ServerConnection.h"
+#include "Logger.h"
+#include "SecureConnection.h"
+#include "Server.h"
 
 class SecuredConnectionTest : public ::testing::Test
 {
@@ -8,8 +10,8 @@ protected:
 	void SetUp() override
     {
         serverThread_ = std::thread([this]() {
-            server_ = std::make_unique<ServerConnection>();
-            server_->RSAConnection();
+            server_ = std::make_unique<Server>();
+            server_->Start();
 
             std::unique_lock<std::mutex> lock(mutex_);
             serverReady_ = true;
@@ -24,7 +26,7 @@ protected:
     }
 
 protected:
-    std::unique_ptr<ServerConnection> server_;
+    std::unique_ptr<Server> server_;
 
     std::mutex mutex_;
     std::thread serverThread_;
@@ -47,14 +49,16 @@ TEST_F(SecuredConnectionTest, SendAndReceiveMessages)
 
     ASSERT_NO_THROW(client.SendSecuredMessage(message));
 
-    std::string receivedMessage = server_->RecieveMessageFromClient();
+    auto& serverConnection = server_->GetConnection();
+
+    std::string receivedMessage = serverConnection.RecieveMessage();
 
     ASSERT_NE(0, receivedMessage.size());
 
     ASSERT_EQ(receivedMessage, message);
 
     std::string response = "Hello, client!";
-    server_->SendSecuredMessage(response);
+    serverConnection.SendSecuredMessage(response);
 
     std::string receivedResponse = client.RecieveMessageFromServer();
 

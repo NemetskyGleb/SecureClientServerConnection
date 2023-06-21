@@ -127,10 +127,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="SecureConnection.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerConnection.cpp" />
     <ClCompile Include="ServerSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="SecureConnection.h" />
+    <ClInclude Include="Server.h" />
     <ClInclude Include="ServerConnection.h" />
     <ClInclude Include="ServerSocket.h" />
   </ItemGroup>
