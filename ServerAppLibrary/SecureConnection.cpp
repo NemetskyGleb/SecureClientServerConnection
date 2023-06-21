@@ -16,7 +16,7 @@ SecureConnection::~SecureConnection()
 {
 }
 
-void SecureConnection::MakeRsaConnection()
+void SecureConnection::MakeSecureConnection(IAsymmetricEncryption* provider)
 {
 	// Accept client connection
 	std::string recievedMessage = socket_->WaitForRequest();
@@ -24,19 +24,7 @@ void SecureConnection::MakeRsaConnection()
 		throw std::runtime_error("Failed connection!");
 	}
 
-	AutoSeededRandomPool rng;
-
-	constexpr size_t keySize = 3072;
-
-	InvertibleRSAFunction params;
-	params.GenerateRandomWithKeySize(rng, keySize);
-	privateKey_ = { params };
-	RSA::PublicKey publicKey(params);
-
-	std::string publicKeyStr;
-	StringSink s(publicKeyStr);
-	// Кодируем публичный ключ с помощью DER
-	publicKey.Save(s);
+	std::string publicKeyStr = provider->GetPublicKey();
 
 	// Отправляем public key, private key сохраняем у себя
 	socket_->Send({ &publicKeyStr[0], publicKeyStr.size() });
@@ -55,40 +43,14 @@ void SecureConnection::MakeRsaConnection()
 	std::string sessionCipherHashIv = socket_->WaitForRequest();
 	logger_->LogKey("cipher_hash_iv: ", sessionCipherHashIv);
 
-	// Расшифруем сессионные ключи полученные от клиента, используя приватный ключ
-	sessionKey_ = SecByteBlock(AES::MAX_KEYLENGTH);
-	iv_ = SecByteBlock(AES::BLOCKSIZE);
-
-	sessionHashKey_ = SecByteBlock(AES::MAX_KEYLENGTH);
-	hashIv_ = SecByteBlock(AES::BLOCKSIZE);
-
 	try
 	{
-		RSAES_OAEP_SHA_Decryptor d(privateKey_);
+		// Расшифруем сессионные ключи полученные от клиента, используя приватный ключ
+		sessionKey_ = provider->Decrypt(sessionCipherKey, AES::MAX_KEYLENGTH);
+		iv_ = provider->Decrypt(sessionCipherIv, AES::BLOCKSIZE);
 
-		StringSource sKey(sessionCipherKey, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(sessionKey_, sessionKey_.size())
-			) // StreamTransformationFilter
-		); // StringSource
-
-		StringSource sHashKey(sessionCipherHashKey, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(sessionHashKey_, sessionHashKey_.size())
-			) // StreamTransformationFilter
-		); // StringSource
-
-		StringSource sIv(sessionCipherIv, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(iv_, iv_.size())
-			) // StreamTransformationFilter
-		); // StringSource
-
-		StringSource sHashIv(sessionCipherHashIv, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(hashIv_, hashIv_.size())
-			) // StreamTransformationFilter
-		); // StringSource
+		sessionHashKey_ = provider->Decrypt(sessionCipherHashKey, AES::MAX_KEYLENGTH);
+		hashIv_ = provider->Decrypt(sessionCipherHashIv, AES::BLOCKSIZE);
 	}
 	catch (const Exception& d)
 	{

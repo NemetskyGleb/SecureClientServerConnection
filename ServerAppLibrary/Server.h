@@ -8,7 +8,7 @@
 class Server
 {
 public:
-	Server();
+	Server(IAsymmetricEncryption* provider);
 
 	~Server();
 
@@ -18,6 +18,7 @@ public:
 
 private:
 	std::shared_ptr<Logger> logger_;
-
 	SecureConnection connection_;
+
+	IAsymmetricEncryption* provider_;
 };

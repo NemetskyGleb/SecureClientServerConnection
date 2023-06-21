@@ -3,6 +3,7 @@
 #include "Logger.h"
 #include "SecureConnection.h"
 #include "Server.h"
+#include "RSA_Encryption.h"
 
 class SecuredConnectionTest : public ::testing::Test
 {
@@ -10,7 +11,11 @@ protected:
 	void SetUp() override
     {
         serverThread_ = std::thread([this]() {
-            server_ = std::make_unique<Server>();
+            constexpr size_t RSAKeySize = 3072;
+
+            provider_ = std::make_unique<RSAEncryption>(RSAKeySize);
+
+            server_ = std::make_unique<Server>(provider_.get());
             server_->Start();
 
             std::unique_lock<std::mutex> lock(mutex_);
@@ -27,6 +32,7 @@ protected:
 
 protected:
     std::unique_ptr<Server> server_;
+    std::unique_ptr<IAsymmetricEncryption> provider_;
 
     std::mutex mutex_;
     std::thread serverThread_;

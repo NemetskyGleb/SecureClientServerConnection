@@ -6,6 +6,7 @@
 
 #include "ServerSocket.h"
 #include "Logger.h"
+#include "IAsymmetricEncryption.h"
 
 #include <string>
 
@@ -17,8 +18,9 @@ public:
 
 	~SecureConnection();
 
-	/// @brief Создать RSA соединение, в котором будет выработан сессионный ключ для сообщения и для хеша
-	void MakeRsaConnection();
+	/// @brief Создать безопасное соединение, в котором будет выработан сессионный ключ для сообщения и для хеша
+	/// @param provider Интерфейс ассиметричного шифрования
+	void MakeSecureConnection(IAsymmetricEncryption* provider);
 
 	/// @brief Отправить зашифрованное сообщение клиенту
 	/// @param message Сообщение
@@ -29,7 +31,6 @@ public:
 	std::string RecieveMessage();
 
 private:
-	CryptoPP::RSA::PrivateKey privateKey_;
 
 	CryptoPP::SecByteBlock sessionKey_;
 	CryptoPP::SecByteBlock iv_;
