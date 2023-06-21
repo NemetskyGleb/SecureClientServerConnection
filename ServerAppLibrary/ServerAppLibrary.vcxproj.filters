@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Intefaces">
+      <UniqueIdentifier>{1a249c97-bdcf-4384-9148-565cb9ac57fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ServerConnection.cpp">
@@ -25,6 +28,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AES_Encryption.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IAsymmetricEncryption.h">
+      <Filter>Intefaces</Filter>
+    </ClCompile>
+    <ClCompile Include="RSA_Encryption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SecureConnection.cpp">
@@ -45,6 +57,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SecureConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AES_Encryption.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISymmetricEncryption.h">
+      <Filter>Intefaces</Filter>
+    </ClInclude>
+    <ClInclude Include="RSA_Encryption.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
