@@ -23,13 +23,13 @@ std::string AES_Encryption::Encrypt(const std::string& plainText)
 		throw std::runtime_error("iv wasn't setted up");
 	}
 
-	CBC_Mode<AES>::Encryption e;
+	CBC_Mode<AES>::Encryption encryptor;
 
 	std::string cipherText;
 
-	e.SetKeyWithIV(key_, key_.size(), iv_);
+	encryptor.SetKeyWithIV(key_, key_.size(), iv_);
 	StringSource sMessage(plainText, true,
-		new StreamTransformationFilter(e,
+		new StreamTransformationFilter(encryptor,
 			new StringSink(cipherText)
 		) // StreamTransformationFilter
 	); // StringSource
@@ -48,14 +48,14 @@ std::string AES_Encryption::Decrypt(const std::string& cipherText)
 		throw std::runtime_error("iv wasn't setted up");
 	}
 
-	CBC_Mode<AES>::Decryption d;
+	CBC_Mode<AES>::Decryption decryptor;
 
-	d.SetKeyWithIV(key_, key_.size(), iv_);
+	decryptor.SetKeyWithIV(key_, key_.size(), iv_);
 
 	std::string decryptedString;
 
 	StringSource sSource(cipherText, true,
-		new StreamTransformationFilter(d,
+		new StreamTransformationFilter(decryptor,
 			new StringSink(decryptedString)
 		) // StreamTransformationFilter
 	); // StringSource

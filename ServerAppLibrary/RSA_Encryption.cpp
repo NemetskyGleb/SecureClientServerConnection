@@ -20,10 +20,10 @@ SecByteBlock RSAEncryption::Decrypt(const std::string& cipherText, size_t bufLen
 {
 	SecByteBlock decryptedBlock(bufLength);
 
-	RSAES_OAEP_SHA_Decryptor d(privateKey_);
+	RSAES_OAEP_SHA_Decryptor decryptor(privateKey_);
 
-	StringSource sKey(cipherText, true,
-		new PK_DecryptorFilter(rng_, d,
+	StringSource stringSource(cipherText, true,
+		new PK_DecryptorFilter(rng_, decryptor,
 			new ArraySink(decryptedBlock, decryptedBlock.size())
 		) // StreamTransformationFilter
 	); // StringSource
@@ -34,9 +34,9 @@ SecByteBlock RSAEncryption::Decrypt(const std::string& cipherText, size_t bufLen
 std::string RSAEncryption::GetPublicKey() const
 {
 	std::string publicKeyStr;
-	StringSink s(publicKeyStr);
+	StringSink stringSink(publicKeyStr);
 	// Кодируем публичный ключ с помощью DER
-	publicKey_.Save(s);
+	publicKey_.Save(stringSink);
 
 	return publicKeyStr;
 }
