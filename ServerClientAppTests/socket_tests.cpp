@@ -9,7 +9,7 @@ protected:
 	{
 		// Start the server in a separate thread
 		serverThread_ = std::thread([this]() {
-			serverSocket_ = std::make_unique<WindowsServerSocket>();
+			serverSocket_ = std::make_unique<WindowsServerSocket>(Settings{});
 			serverSocket_->MakeConnection();
 		});
 

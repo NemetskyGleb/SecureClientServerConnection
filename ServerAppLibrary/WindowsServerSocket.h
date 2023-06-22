@@ -15,10 +15,9 @@ class WindowsServerSocket : public IServerSocket
 {
 public:
 	/// @brief Конструктор сокета
-	/// @param port порт для формирования TCP соединения. По умолчанию 27015
-	/// @param buflen длина буфера для получения сообщения. По умолчанию 512
+	/// @param 
 	/// @param servername IP адрес сервера. По умолчанию localhost
-	WindowsServerSocket(const std::string& port = "27015", size_t buflen = 512);
+	WindowsServerSocket(const Settings& settings);
 
 	/// @brief Создать сокет для подключения и слушать по заданному порту
 	void MakeConnection() override;
@@ -48,8 +47,8 @@ private:
 	// версия WinSock
 	WSADATA wsaData;
 
-	/// port порт для формирования TCP соединения. 
-	std::string port_;
+	// Настройки сокета
+	Settings settings_;
 
 	// Буфер для получения сообщения
 	std::string recvbuf_;

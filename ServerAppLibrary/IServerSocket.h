@@ -2,6 +2,13 @@
 
 #include <string>
 
+/// @brief Настройки сокета
+struct Settings
+{
+	std::string port = "27015"; /// порт для формирования TCP соединения. По умолчанию 27015
+	size_t buflen = 512; // длина буфера для получения сообщения. По умолчанию 512
+};
+
 class IServerSocket
 {
 public:

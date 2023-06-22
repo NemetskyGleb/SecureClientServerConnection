@@ -16,7 +16,7 @@ protected:
 
             provider_ = std::make_unique<RSAEncryption>(RSAKeySize);
 
-            server_ = std::make_unique<Server>(provider_.get(), new AES_Encryption);
+            server_ = std::make_unique<Server>(Settings{}, provider_.get(), new AES_Encryption);
             server_->Start();
 
             std::unique_lock<std::mutex> lock(mutex_);
