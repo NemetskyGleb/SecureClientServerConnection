@@ -35,6 +35,14 @@ public:
 	/// @return Полученное сообщение
 	std::string RecieveMessage() override;
 
+protected:
+	std::string EncryptOnSessionKey(const std::string& message, 
+								    const CryptoPP::SecByteBlock& key,
+									const CryptoPP::SecByteBlock& iv);
+
+	std::string DecryptWithSessionKey(const std::string& message,
+									  const CryptoPP::SecByteBlock& key,
+									  const CryptoPP::SecByteBlock& iv);
 private:
 	CryptoPP::SecByteBlock sessionKey_;
 	CryptoPP::SecByteBlock iv_;
