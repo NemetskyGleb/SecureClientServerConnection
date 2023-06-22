@@ -5,11 +5,10 @@
 // Разделитель для сообщений из буфера
 const std::string delimiter = "/sep/";
 
-WindowsServerSocket::WindowsServerSocket(const std::string& port, size_t buflen)
-
-	: port_{ port }
+WindowsServerSocket::WindowsServerSocket(const Settings& settings)
+	: settings_{ settings }
 {
-	recvbuf_.reserve(buflen);
+	recvbuf_.reserve(settings_.buflen);
 
 	ZeroMemory(&hints_, sizeof(hints_));
 	// IPv4 address
@@ -25,7 +24,7 @@ WindowsServerSocket::WindowsServerSocket(const std::string& port, size_t buflen)
 void WindowsServerSocket::MakeConnection()
 {
 	checkRetVal(getaddrinfo(NULL
-		, port_.c_str()
+		, settings_.port.c_str()
 		, &hints_
 		, &result_), "getaddrinfo failed.");
 

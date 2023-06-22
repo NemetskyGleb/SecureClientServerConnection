@@ -3,11 +3,12 @@
 #include "SecureConnection.h"
 #include "Logger.h"
 
-
 class Server
 {
 public:
-	Server(IAsymmetricEncryption* provider, ISymmetricEncryption* symmetricProvider);
+	Server(const Settings& socketSettings, 
+		   IAsymmetricEncryption* provider,
+		   ISymmetricEncryption* symmetricProvider);
 
 	~Server();
 
