@@ -6,7 +6,7 @@
 
 using namespace CryptoPP;
 
-SecureConnection::SecureConnection(std::unique_ptr<ServerSocket> socket,
+SecureConnection::SecureConnection(std::unique_ptr<IServerSocket> socket,
 								   ISymmetricEncryption* symmetricEncryptor,
 								   std::shared_ptr<Logger> logger) 
 	: socket_(std::move(socket))

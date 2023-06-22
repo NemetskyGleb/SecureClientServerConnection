@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "ServerSocket.h"
+#include "WindowsServerSocket.h"
 #include "ClientSocket.h"
 
 class ServerSocketTest : public ::testing::Test
@@ -9,7 +9,7 @@ protected:
 	{
 		// Start the server in a separate thread
 		serverThread_ = std::thread([this]() {
-			serverSocket_ = std::make_unique<ServerSocket>();
+			serverSocket_ = std::make_unique<WindowsServerSocket>();
 			serverSocket_->MakeConnection();
 		});
 
@@ -24,7 +24,7 @@ protected:
 
 protected:
 	// ServerSocket instance used in the tests
-	std::unique_ptr<ServerSocket> serverSocket_;
+	std::unique_ptr<IServerSocket> serverSocket_;
 
 	// Thread for running the server
 	std::thread serverThread_;

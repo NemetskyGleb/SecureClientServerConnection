@@ -56,16 +56,16 @@ TEST_F(SecuredConnectionTest, SendAndReceiveMessages)
 
     ASSERT_NO_THROW(client.SendSecuredMessage(message));
 
-    auto& serverConnection = server_->GetConnection();
+    auto serverConnection = server_->GetConnection();
 
-    std::string receivedMessage = serverConnection.RecieveMessage();
+    std::string receivedMessage = serverConnection->RecieveMessage();
 
     ASSERT_NE(0, receivedMessage.size());
 
     ASSERT_EQ(receivedMessage, message);
 
     std::string response = "Hello, client!";
-    serverConnection.SendSecuredMessage(response);
+    serverConnection->SendSecuredMessage(response);
 
     std::string receivedResponse = client.RecieveMessageFromServer();
 

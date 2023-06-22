@@ -1,11 +1,28 @@
-#include "ServerSocket.h"
 #include <iostream>
+#include "WindowsServerSocket.h"
 // https://learn.microsoft.com/ru-ru/windows/win32/winsock/winsock-server-application
 
 // Разделитель для сообщений из буфера
 const std::string delimiter = "/sep/";
 
-void ServerSocket::MakeConnection()
+WindowsServerSocket::WindowsServerSocket(const std::string& port, size_t buflen)
+
+	: port_{ port }
+{
+	recvbuf_.reserve(buflen);
+
+	ZeroMemory(&hints_, sizeof(hints_));
+	// IPv4 address
+	hints_.ai_family = AF_INET;
+	hints_.ai_socktype = SOCK_STREAM;
+	hints_.ai_protocol = IPPROTO_TCP;
+	hints_.ai_flags = AI_PASSIVE;
+
+	// Initialize Winsock
+	checkRetVal(WSAStartup(MAKEWORD(2, 2), &wsaData), "WSAStartup failed");
+}
+
+void WindowsServerSocket::MakeConnection()
 {
 	checkRetVal(getaddrinfo(NULL
 		, port_.c_str()
@@ -36,7 +53,7 @@ void ServerSocket::MakeConnection()
 	closesocket(listenSocket_);
 }
 
-void ServerSocket::Send(const std::string& message) const
+void WindowsServerSocket::Send(const std::string& message) const
 {
 	// sending message with separator
 	std::string sendingMessage = message + delimiter;
@@ -49,7 +66,7 @@ void ServerSocket::Send(const std::string& message) const
 	std::cout << "Bytes sent: " << bytesSent << "\n";
 }
 
-std::string ServerSocket::WaitForRequest()
+std::string WindowsServerSocket::WaitForRequest()
 {
 	if (!pendingMessages.empty())
 	{
@@ -89,7 +106,7 @@ std::string ServerSocket::WaitForRequest()
 	}
 }
 
-ServerSocket::~ServerSocket()
+WindowsServerSocket::~WindowsServerSocket()
 {
 	shutdown(clientSocket_, SD_SEND);
 

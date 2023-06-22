@@ -4,18 +4,20 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
 
-#include "ServerSocket.h"
 #include "Logger.h"
+
+#include "IServerSocket.h"
+#include "ISecureConnection.h"
 #include "IAsymmetricEncryption.h"
 #include "ISymmetricEncryption.h"
 
 #include <string>
 
 /// @brief Класс для создания защищенного соединения и отправки, получения защищенных сообщений
-class SecureConnection
+class SecureConnection : public ISecureConnection
 {
 public:
-	SecureConnection(std::unique_ptr<ServerSocket> socket,
+	SecureConnection(std::unique_ptr<IServerSocket> socket,
 					 ISymmetricEncryption* symmetricEncryptor,
 				     std::shared_ptr<Logger> logger);
 
@@ -23,15 +25,15 @@ public:
 
 	/// @brief Создать безопасное соединение, в котором будет выработан сессионный ключ для сообщения и для хеша
 	/// @param provider Интерфейс ассиметричного шифрования
-	void MakeSecureConnection(IAsymmetricEncryption* provider);
+	void MakeSecureConnection(IAsymmetricEncryption* provider) override;
 
 	/// @brief Отправить зашифрованное сообщение клиенту
 	/// @param message Сообщение
-	void SendSecuredMessage(const std::string& message);
+	void SendSecuredMessage(const std::string& message) override;
 
 	/// @brief Получить сообщение от клиента
 	/// @return Полученное сообщение
-	std::string RecieveMessage();
+	std::string RecieveMessage() override;
 
 private:
 	CryptoPP::SecByteBlock sessionKey_;
@@ -40,7 +42,7 @@ private:
 	CryptoPP::SecByteBlock sessionHashKey_;
 	CryptoPP::SecByteBlock hashIv_;
 
-	std::unique_ptr<ServerSocket> socket_;
+	std::unique_ptr<IServerSocket> socket_;
 	std::unique_ptr<ISymmetricEncryption> symmetricEncryptor_;;
 	std::shared_ptr<Logger> logger_;
 
