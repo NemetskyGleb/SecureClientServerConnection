@@ -1,8 +1,8 @@
 #include "Server.h"
 
-Server::Server(IAsymmetricEncryption* provider)
+Server::Server(IAsymmetricEncryption* provider, ISymmetricEncryption* symmetricProvider)
 	: logger_{ std::make_shared<Logger>() }
-	, connection_{ std::make_unique<ServerSocket>(), logger_ }
+	, connection_{ std::make_unique<ServerSocket>(), symmetricProvider, logger_ }
 	, provider_{ provider }
 {	
 }

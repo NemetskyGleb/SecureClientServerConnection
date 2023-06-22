@@ -7,6 +7,7 @@
 #include "ServerSocket.h"
 #include "Logger.h"
 #include "IAsymmetricEncryption.h"
+#include "ISymmetricEncryption.h"
 
 #include <string>
 
@@ -14,7 +15,9 @@
 class SecureConnection
 {
 public:
-	SecureConnection(std::unique_ptr<ServerSocket> socket, std::shared_ptr<Logger> logger);
+	SecureConnection(std::unique_ptr<ServerSocket> socket,
+					 ISymmetricEncryption* symmetricEncryptor,
+				     std::shared_ptr<Logger> logger);
 
 	~SecureConnection();
 
@@ -31,7 +34,6 @@ public:
 	std::string RecieveMessage();
 
 private:
-
 	CryptoPP::SecByteBlock sessionKey_;
 	CryptoPP::SecByteBlock iv_;
 
@@ -39,6 +41,7 @@ private:
 	CryptoPP::SecByteBlock hashIv_;
 
 	std::unique_ptr<ServerSocket> socket_;
+	std::unique_ptr<ISymmetricEncryption> symmetricEncryptor_;;
 	std::shared_ptr<Logger> logger_;
 
 	CryptoPP::SHA256 hash_;

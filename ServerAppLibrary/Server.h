@@ -8,7 +8,7 @@
 class Server
 {
 public:
-	Server(IAsymmetricEncryption* provider);
+	Server(IAsymmetricEncryption* provider, ISymmetricEncryption* symmetricProvider);
 
 	~Server();
 

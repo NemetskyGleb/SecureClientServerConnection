@@ -4,6 +4,7 @@
 #include "SecureConnection.h"
 #include "Server.h"
 #include "RSA_Encryption.h"
+#include "AES_Encryption.h"
 
 class SecuredConnectionTest : public ::testing::Test
 {
@@ -15,7 +16,7 @@ protected:
 
             provider_ = std::make_unique<RSAEncryption>(RSAKeySize);
 
-            server_ = std::make_unique<Server>(provider_.get());
+            server_ = std::make_unique<Server>(provider_.get(), new AES_Encryption);
             server_->Start();
 
             std::unique_lock<std::mutex> lock(mutex_);
