@@ -83,15 +83,8 @@ void SecureConnection::SendSecuredMessage(const std::string& message)
 	std::string cipherMessage;
 	try
 	{
-		symmetricEncryptor_->SetSessionKey(sessionKey_);
-		symmetricEncryptor_->SetKeyIv(iv_);
-
-		cipherMessage = symmetricEncryptor_->Encrypt(message);
-
-		symmetricEncryptor_->SetSessionKey(sessionHashKey_);
-		symmetricEncryptor_->SetKeyIv(hashIv_);
-
-		cipherDigest = symmetricEncryptor_->Encrypt(digest);
+		cipherMessage = EncryptOnSessionKey(message, sessionKey_, iv_);
+		cipherDigest = EncryptOnSessionKey(digest, sessionHashKey_, hashIv_);
 	}
 	catch (const Exception& e)
 	{
@@ -116,16 +109,8 @@ std::string SecureConnection::RecieveMessage()
 	std::string recievedMessage, recievedDigest;
 	try
 	{
-
-		symmetricEncryptor_->SetSessionKey(sessionKey_);
-		symmetricEncryptor_->SetKeyIv(iv_);
-
-		recievedMessage = symmetricEncryptor_->Decrypt(recievedCipherMessage);
-
-		symmetricEncryptor_->SetSessionKey(sessionHashKey_);
-		symmetricEncryptor_->SetKeyIv(hashIv_);
-
-		recievedDigest = symmetricEncryptor_->Decrypt(recievedCipherDigest);
+		recievedMessage = DecryptWithSessionKey(recievedCipherMessage, sessionKey_, iv_);
+		recievedDigest = DecryptWithSessionKey(recievedCipherDigest, sessionHashKey_, hashIv_);
 	}
 	catch (const Exception& e)
 	{
@@ -146,4 +131,24 @@ std::string SecureConnection::RecieveMessage()
 	}
 
 	return recievedMessage;
+}
+
+std::string SecureConnection::EncryptOnSessionKey(const std::string& message, 
+												  const CryptoPP::SecByteBlock& key,
+												  const CryptoPP::SecByteBlock& iv)
+{
+	symmetricEncryptor_->SetSessionKey(key);
+	symmetricEncryptor_->SetKeyIv(iv);
+
+	return symmetricEncryptor_->Encrypt(message);
+}
+
+std::string SecureConnection::DecryptWithSessionKey(const std::string& message,
+													const CryptoPP::SecByteBlock& key,
+												    const CryptoPP::SecByteBlock& iv)
+{
+	symmetricEncryptor_->SetSessionKey(key);
+	symmetricEncryptor_->SetKeyIv(iv);
+
+	return symmetricEncryptor_->Decrypt(message);
 }
