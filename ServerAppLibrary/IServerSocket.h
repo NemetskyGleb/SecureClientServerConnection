@@ -5,7 +5,7 @@
 class IServerSocket
 {
 public:
-	virtual ~IServerSocket() = 0;
+	virtual ~IServerSocket() = default;
 	
 	/// @brief Создать сокет для подключения и слушать по заданному порту
 	virtual void MakeConnection() = 0;
