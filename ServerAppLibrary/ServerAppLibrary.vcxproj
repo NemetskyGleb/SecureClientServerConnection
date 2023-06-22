@@ -127,14 +127,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AES_Encryption.cpp" />
+    <ClCompile Include="IAsymmetricEncryption.h" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="RSA_Encryption.cpp" />
     <ClCompile Include="SecureConnection.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerConnection.cpp" />
     <ClCompile Include="ServerSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AES_Encryption.h" />
+    <ClInclude Include="ISymmetricEncryption.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="RSA_Encryption.h" />
     <ClInclude Include="SecureConnection.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="ServerConnection.h" />

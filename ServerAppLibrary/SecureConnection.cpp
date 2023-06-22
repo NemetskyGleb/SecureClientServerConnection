@@ -6,8 +6,12 @@
 
 using namespace CryptoPP;
 
-SecureConnection::SecureConnection(std::unique_ptr<ServerSocket> socket, std::shared_ptr<Logger> logger) 
-	: socket_( std::move(socket) ), logger_(logger)
+SecureConnection::SecureConnection(std::unique_ptr<ServerSocket> socket,
+								   ISymmetricEncryption* symmetricEncryptor,
+								   std::shared_ptr<Logger> logger) 
+	: socket_(std::move(socket))
+	, symmetricEncryptor_{symmetricEncryptor}
+	, logger_(logger)
 {
 	socket_->MakeConnection();
 }
@@ -16,7 +20,7 @@ SecureConnection::~SecureConnection()
 {
 }
 
-void SecureConnection::MakeRsaConnection()
+void SecureConnection::MakeSecureConnection(IAsymmetricEncryption* provider)
 {
 	// Accept client connection
 	std::string recievedMessage = socket_->WaitForRequest();
@@ -24,19 +28,7 @@ void SecureConnection::MakeRsaConnection()
 		throw std::runtime_error("Failed connection!");
 	}
 
-	AutoSeededRandomPool rng;
-
-	constexpr size_t keySize = 3072;
-
-	InvertibleRSAFunction params;
-	params.GenerateRandomWithKeySize(rng, keySize);
-	privateKey_ = { params };
-	RSA::PublicKey publicKey(params);
-
-	std::string publicKeyStr;
-	StringSink s(publicKeyStr);
-	// Кодируем публичный ключ с помощью DER
-	publicKey.Save(s);
+	std::string publicKeyStr = provider->GetPublicKey();
 
 	// Отправляем public key, private key сохраняем у себя
 	socket_->Send({ &publicKeyStr[0], publicKeyStr.size() });
@@ -55,40 +47,14 @@ void SecureConnection::MakeRsaConnection()
 	std::string sessionCipherHashIv = socket_->WaitForRequest();
 	logger_->LogKey("cipher_hash_iv: ", sessionCipherHashIv);
 
-	// Расшифруем сессионные ключи полученные от клиента, используя приватный ключ
-	sessionKey_ = SecByteBlock(AES::MAX_KEYLENGTH);
-	iv_ = SecByteBlock(AES::BLOCKSIZE);
-
-	sessionHashKey_ = SecByteBlock(AES::MAX_KEYLENGTH);
-	hashIv_ = SecByteBlock(AES::BLOCKSIZE);
-
 	try
 	{
-		RSAES_OAEP_SHA_Decryptor d(privateKey_);
+		// Расшифруем сессионные ключи полученные от клиента, используя приватный ключ
+		sessionKey_ = provider->Decrypt(sessionCipherKey, symmetricEncryptor_->GetKeyBlockSize());
+		iv_ = provider->Decrypt(sessionCipherIv, symmetricEncryptor_->GetIvBlockSize());
 
-		StringSource sKey(sessionCipherKey, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(sessionKey_, sessionKey_.size())
-			) // StreamTransformationFilter
-		); // StringSource
-
-		StringSource sHashKey(sessionCipherHashKey, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(sessionHashKey_, sessionHashKey_.size())
-			) // StreamTransformationFilter
-		); // StringSource
-
-		StringSource sIv(sessionCipherIv, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(iv_, iv_.size())
-			) // StreamTransformationFilter
-		); // StringSource
-
-		StringSource sHashIv(sessionCipherHashIv, true,
-			new PK_DecryptorFilter(rng, d,
-				new ArraySink(hashIv_, hashIv_.size())
-			) // StreamTransformationFilter
-		); // StringSource
+		sessionHashKey_ = provider->Decrypt(sessionCipherHashKey, symmetricEncryptor_->GetKeyBlockSize());
+		hashIv_ = provider->Decrypt(sessionCipherHashIv, symmetricEncryptor_->GetIvBlockSize());
 	}
 	catch (const Exception& d)
 	{
@@ -117,21 +83,15 @@ void SecureConnection::SendSecuredMessage(const std::string& message)
 	std::string cipherMessage;
 	try
 	{
-		CBC_Mode<AES>::Encryption e;
+		symmetricEncryptor_->SetSessionKey(sessionKey_);
+		symmetricEncryptor_->SetKeyIv(iv_);
 
-		e.SetKeyWithIV(sessionKey_, sessionKey_.size(), iv_);
-		StringSource sMessage(message, true,
-			new StreamTransformationFilter(e,
-				new StringSink(cipherMessage)
-			) // StreamTransformationFilter
-		); // StringSource
+		cipherMessage = symmetricEncryptor_->Encrypt(message);
 
-		e.SetKeyWithIV(sessionHashKey_, sessionHashKey_.size(), hashIv_);
-		StringSource sHash(digest, true,
-			new StreamTransformationFilter(e,
-				new StringSink(cipherDigest)
-			) // StreamTransformationFilter
-		); // StringSource
+		symmetricEncryptor_->SetSessionKey(sessionHashKey_);
+		symmetricEncryptor_->SetKeyIv(hashIv_);
+
+		cipherDigest = symmetricEncryptor_->Encrypt(digest);
 	}
 	catch (const Exception& e)
 	{
@@ -156,23 +116,16 @@ std::string SecureConnection::RecieveMessage()
 	std::string recievedMessage, recievedDigest;
 	try
 	{
-		CBC_Mode<AES>::Decryption d;
 
-		d.SetKeyWithIV(sessionHashKey_, sessionHashKey_.size(), hashIv_);
+		symmetricEncryptor_->SetSessionKey(sessionKey_);
+		symmetricEncryptor_->SetKeyIv(iv_);
 
-		StringSource sHash(recievedCipherDigest, true,
-			new StreamTransformationFilter(d,
-				new StringSink(recievedDigest)
-			) // StreamTransformationFilter
-		); // StringSource
+		recievedMessage = symmetricEncryptor_->Decrypt(recievedCipherMessage);
 
-		d.SetKeyWithIV(sessionKey_, sessionKey_.size(), iv_);
+		symmetricEncryptor_->SetSessionKey(sessionHashKey_);
+		symmetricEncryptor_->SetKeyIv(hashIv_);
 
-		StringSource sMessage(recievedCipherMessage, true,
-			new StreamTransformationFilter(d,
-				new StringSink(recievedMessage)
-			) // StreamTransformationFilter
-		); // StringSource
+		recievedDigest = symmetricEncryptor_->Decrypt(recievedCipherDigest);
 	}
 	catch (const Exception& e)
 	{

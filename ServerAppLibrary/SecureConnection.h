@@ -6,6 +6,8 @@
 
 #include "ServerSocket.h"
 #include "Logger.h"
+#include "IAsymmetricEncryption.h"
+#include "ISymmetricEncryption.h"
 
 #include <string>
 
@@ -13,12 +15,15 @@
 class SecureConnection
 {
 public:
-	SecureConnection(std::unique_ptr<ServerSocket> socket, std::shared_ptr<Logger> logger);
+	SecureConnection(std::unique_ptr<ServerSocket> socket,
+					 ISymmetricEncryption* symmetricEncryptor,
+				     std::shared_ptr<Logger> logger);
 
 	~SecureConnection();
 
-	/// @brief Создать RSA соединение, в котором будет выработан сессионный ключ для сообщения и для хеша
-	void MakeRsaConnection();
+	/// @brief Создать безопасное соединение, в котором будет выработан сессионный ключ для сообщения и для хеша
+	/// @param provider Интерфейс ассиметричного шифрования
+	void MakeSecureConnection(IAsymmetricEncryption* provider);
 
 	/// @brief Отправить зашифрованное сообщение клиенту
 	/// @param message Сообщение
@@ -29,8 +34,6 @@ public:
 	std::string RecieveMessage();
 
 private:
-	CryptoPP::RSA::PrivateKey privateKey_;
-
 	CryptoPP::SecByteBlock sessionKey_;
 	CryptoPP::SecByteBlock iv_;
 
@@ -38,6 +41,7 @@ private:
 	CryptoPP::SecByteBlock hashIv_;
 
 	std::unique_ptr<ServerSocket> socket_;
+	std::unique_ptr<ISymmetricEncryption> symmetricEncryptor_;;
 	std::shared_ptr<Logger> logger_;
 
 	CryptoPP::SHA256 hash_;

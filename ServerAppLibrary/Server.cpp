@@ -1,8 +1,9 @@
 #include "Server.h"
 
-Server::Server()
-	: logger_{ std::make_shared<Logger>() },
-	connection_{ std::make_unique<ServerSocket>(), logger_ }
+Server::Server(IAsymmetricEncryption* provider, ISymmetricEncryption* symmetricProvider)
+	: logger_{ std::make_shared<Logger>() }
+	, connection_{ std::make_unique<ServerSocket>(), symmetricProvider, logger_ }
+	, provider_{ provider }
 {	
 }
 
@@ -12,7 +13,7 @@ Server::~Server()
 
 void Server::Start()
 {
-	connection_.MakeRsaConnection();
+	connection_.MakeSecureConnection(provider_);
 }
 
 SecureConnection& Server::GetConnection()
