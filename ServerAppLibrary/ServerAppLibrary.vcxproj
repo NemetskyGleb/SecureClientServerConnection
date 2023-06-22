@@ -133,18 +133,19 @@
     <ClCompile Include="RSA_Encryption.cpp" />
     <ClCompile Include="SecureConnection.cpp" />
     <ClCompile Include="Server.cpp" />
-    <ClCompile Include="ServerConnection.cpp" />
-    <ClCompile Include="ServerSocket.cpp" />
+    <ClCompile Include="WindowsServerSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AES_Encryption.h" />
+    <ClInclude Include="ISecureConnection.h" />
+    <ClInclude Include="IServerSocket.h" />
     <ClInclude Include="ISymmetricEncryption.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="RSA_Encryption.h" />
     <ClInclude Include="SecureConnection.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="ServerConnection.h" />
-    <ClInclude Include="ServerSocket.h" />
+    <ClInclude Include="WindowsServerSocket.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

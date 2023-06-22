@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IServerSocket.h"
+
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 
@@ -9,42 +11,27 @@
 #include <stdexcept>
 
 /// @brief 
-class ServerSocket
+class WindowsServerSocket : public IServerSocket
 {
 public:
 	/// @brief Конструктор сокета
 	/// @param port порт для формирования TCP соединения. По умолчанию 27015
 	/// @param buflen длина буфера для получения сообщения. По умолчанию 512
 	/// @param servername IP адрес сервера. По умолчанию localhost
-	ServerSocket(const std::string& port = "27015",
-		size_t buflen = 512)
-		: port_{ port }
-	{
-		recvbuf_.reserve(buflen);
-
-		ZeroMemory(&hints_, sizeof(hints_));
-		// IPv4 address
-		hints_.ai_family = AF_INET;
-		hints_.ai_socktype = SOCK_STREAM;
-		hints_.ai_protocol = IPPROTO_TCP;
-		hints_.ai_flags = AI_PASSIVE;
-
-		// Initialize Winsock
-		checkRetVal(WSAStartup(MAKEWORD(2, 2), &wsaData), "WSAStartup failed");
-	}
+	WindowsServerSocket(const std::string& port = "27015", size_t buflen = 512);
 
 	/// @brief Создать сокет для подключения и слушать по заданному порту
-	void MakeConnection();
+	void MakeConnection() override;
 
 	/// @brief Отправить по сокету сообщение
 	/// @param message Отправляемое сообщение
-	void Send(const std::string& message) const;
+	void Send(const std::string& message) const override;
 
 	/// @brief Ждать сообщение с сервера
 	/// @return Полученное сообщение 
-	std::string WaitForRequest();
+	std::string WaitForRequest() override;
 
-	~ServerSocket();
+	~WindowsServerSocket();
 
 private:
 	// данные узла

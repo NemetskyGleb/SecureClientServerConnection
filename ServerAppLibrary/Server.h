@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SecureConnection.h"
-#include "ServerSocket.h"
 #include "Logger.h"
 
 
@@ -14,11 +13,11 @@ public:
 
 	void Start();
 
-	SecureConnection& GetConnection();
+	ISecureConnection* GetConnection();
 
 private:
 	std::shared_ptr<Logger> logger_;
-	SecureConnection connection_;
+	std::unique_ptr<ISecureConnection> connection_;
 
 	IAsymmetricEncryption* provider_;
 };

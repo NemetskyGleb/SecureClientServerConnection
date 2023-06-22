@@ -18,10 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ServerConnection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ServerSocket.cpp">
+    <ClCompile Include="WindowsServerSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Server.cpp">
@@ -47,7 +44,7 @@
     <ClInclude Include="ServerConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ServerSocket.h">
+    <ClInclude Include="WindowsServerSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Logger.h">
@@ -67,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="RSA_Encryption.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IServerSocket.h">
+      <Filter>Intefaces</Filter>
+    </ClInclude>
+    <ClInclude Include="ISecureConnection.h">
+      <Filter>Intefaces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
