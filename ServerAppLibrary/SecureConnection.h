@@ -10,6 +10,7 @@
 #include "ISecureConnection.h"
 #include "IAsymmetricEncryption.h"
 #include "ISymmetricEncryption.h"
+#include "HashCalculator.h"
 
 #include <string>
 
@@ -53,6 +54,4 @@ private:
 	std::unique_ptr<IServerSocket> socket_;
 	std::unique_ptr<ISymmetricEncryption> symmetricEncryptor_;;
 	std::shared_ptr<Logger> logger_;
-
-	CryptoPP::SHA256 hash_;
 };

@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AES_Encryption.cpp" />
+    <ClCompile Include="HashCalculator.cpp" />
     <ClCompile Include="IAsymmetricEncryption.h" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="RSA_Encryption.cpp" />
@@ -137,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AES_Encryption.h" />
+    <ClInclude Include="HashCalculator.h" />
     <ClInclude Include="ISecureConnection.h" />
     <ClInclude Include="IServerSocket.h" />
     <ClInclude Include="ISymmetricEncryption.h" />

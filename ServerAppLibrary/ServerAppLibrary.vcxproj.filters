@@ -39,6 +39,9 @@
     <ClCompile Include="SecureConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HashCalculator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServerConnection.h">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="ISecureConnection.h">
       <Filter>Intefaces</Filter>
+    </ClInclude>
+    <ClInclude Include="HashCalculator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include "SecureConnection.h"
+#include "HashCalculator.h"
 
 #include <cryptopp/files.h>
 #include <cryptopp/osrng.h>
@@ -74,8 +75,9 @@ void SecureConnection::MakeSecureConnection(IAsymmetricEncryption* provider)
 void SecureConnection::SendSecuredMessage(const std::string& message)
 {
 	// Вычисление хеша от отправляемого сообщения
-	std::string digest;
-	StringSource sHash(message, true, new HashFilter(hash_, new StringSink(digest)));
+	HashCalculator hasher;
+	std::string digest = hasher.CalculateHash(message);
+
 	logger_->LogKey("Digest: ", digest);
 
 	// Шифрование хеша и сообщения на сессионом ключе
@@ -118,18 +120,9 @@ std::string SecureConnection::RecieveMessage()
 		exit(1);
 	}
 
-	logger_->LogKey("Recieved hash: ", recievedDigest);
-
-	std::string actualDigest;
-	StringSource sHash(recievedMessage, true, new HashFilter(hash_, new StringSink(actualDigest)));
-
-	logger_->LogKey("Actual hash: ", actualDigest);
-
-	if (actualDigest != recievedDigest)
-	{
-		throw std::runtime_error("Hashes aren't equal. Authentification not passed.");
-	}
-
+	HashCalculator hasher;
+	hasher.Verify(recievedMessage, recievedDigest);
+	
 	return recievedMessage;
 }
 
