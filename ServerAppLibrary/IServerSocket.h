@@ -2,10 +2,13 @@
 
 #include <string>
 
+const std::string DEFAULT_PORT = "27015";
+const size_t DEFAULT_BUFLEN = 512;
+
 /// @brief Настройки сокета
 struct Settings
 {
-	std::string port = "27015"; /// порт для формирования TCP соединения. По умолчанию 27015
+	std::string port = DEFAULT_PORT; /// порт для формирования TCP соединения. По умолчанию 27015
 	size_t buflen = 512; // длина буфера для получения сообщения. По умолчанию 512
 };
 
